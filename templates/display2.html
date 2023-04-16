@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CSV Data</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday/css/pikaday.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 2rem;
+            table-layout: fixed;
+        }
+
+        thead {
+            background-color: #f2f2f2;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px;
+            word-wrap: break-word;
+            border: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        a {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+        }
+
+        a:hover {
+            background-color: #45a049;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+      
+
+        th {
+            position: relative;
+        }
+
+        .filter-input {
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 4px;
+        }
+
+        .pika-single {
+            z-index: 100;
+            position: absolute;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/pikaday/pikaday.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const picker = new Pikaday({
+                field: document.getElementById('date-picker'),
+                format: 'YYYY-MM-DD',
+                onSelect: function () {
+                    filterTable();
+                }
+            });
+        });
+
+        function filterTable() {
+            const inputs = document.querySelectorAll('.filter-input');
+            const table = document.getElementById('csv-data-table');
+            const rows = table.querySelectorAll('tbody tr');
+
+            rows.forEach(row => {
+                let shouldShow = true;
+                const cells = row.querySelectorAll('td');
+
+                inputs.forEach((input, index) => {
+                    const cellValue = cells[index].innerText.toLowerCase();
+                    const filterValue = input.value.toLowerCase();
+                    if (cellValue.indexOf(filterValue) === -1) {
+                        shouldShow = false;
+                    }
+                });
+
+                if (shouldShow) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Date picker filter
+            const datePicker = document.getElementById('date-picker');
+            const dateFilterValue = datePicker.value;
+            if (dateFilterValue) {
+                const dateIndex = 1; // Change this to the index of the 'date' column in your CSV file
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    const cellDateValue = cells[dateIndex].innerText;
+                    if (cellDateValue !== dateFilterValue) {
+                        row.style.display = 'none';
+                    }
+                });
+            }
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <h1>CSV Data</h1>
+    <table id="csv-data-table">
+        <thead>
+        <tr>
+            {% for key in data[0].keys() %}
+            <th>
+                {{ key }}
+                <br>
+                {% if loop.index0 == 1 %}
+                <input id="date-picker" type="text" readonly>
+                {% else %}
+                <input class="filter-input" type="text" oninput="filterTable()">
+                {% endif %}
+            </th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in data %}
+        <tr>
+            {% for key, value in row.items() %}
+            <td>{{ value }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <a href="/">Upload another file</a>
+</div>
+</body>
+</html>
